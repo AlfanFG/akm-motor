@@ -1,8 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { FcGoogle } from "react-icons/fc";
-import { FaGithub } from "react-icons/fa";
+
 import {
   Card,
   CardContent,
@@ -26,11 +25,18 @@ import { login } from "@/actions/login";
 import FormError from "@/components/form-error";
 import { useState, useTransition } from "react";
 import FormSuccess from "@/components/form-success";
+import Social from "@/app/auth/social";
+import { useSearchParams } from "next/navigation";
 
 export default function LoginForm() {
   const [error, setError] = useState<string | undefined>("");
   const [success, setSuccess] = useState<string | undefined>("");
   const [isPending, startTransition] = useTransition();
+  const searchParams = useSearchParams();
+  const urlError =
+    searchParams.get("error") === "OAuthAccountNotLinked"
+      ? "Email already in use with different provider!"
+      : "";
   const form = useForm<z.infer<typeof LoginSchema>>({
     resolver: zodResolver(LoginSchema),
     defaultValues: {
@@ -44,8 +50,8 @@ export default function LoginForm() {
       login(values).then((data) => {
         console.log("data", data);
         console.log("values", values);
-        setError(data.error);
-        setSuccess(data.success);
+        setError(data?.error);
+        setSuccess(data?.success);
       });
     });
   };
@@ -90,7 +96,7 @@ export default function LoginForm() {
                   </FormItem>
                 )}
               />
-              <FormError message={error} />
+              <FormError message={error || urlError} />
               <FormSuccess message={success} />
               <Button
                 disabled={isPending}
@@ -99,23 +105,7 @@ export default function LoginForm() {
               >
                 Login
               </Button>
-              <div className="flex justify-between gap-2">
-                <Button
-                  className="space-y-4 w-full"
-                  size={"lg"}
-                  variant={"outline"}
-                >
-                  <FcGoogle />
-                </Button>
-
-                <Button
-                  className="space-y-4 w-full"
-                  size={"lg"}
-                  variant={"outline"}
-                >
-                  <FaGithub />
-                </Button>
-              </div>
+              <Social />
               <Link
                 href={"/auth/register"}
                 className="flex justify-center text-xs"
